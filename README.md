@@ -1,4 +1,4 @@
-# Running Virtual Machine Inside a Docker Container using MacVLAN
+# Running Virtual Machine Inside a Docker Container with MacVLAN networking
 
 Yes, you heard it right. Its VM running inside Docker Container. But why will I need that? Say, your company has been using legacy application in terms of appliance model and it is being provided in terms of VMs. Now you get a requirement saying it has to be containerized. This guide can help you containerizing the VM appliance by running it inside Docker Container.
 
