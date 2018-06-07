@@ -111,7 +111,7 @@ CONTAINER ID        IMAGE                     COMMAND                  CREATED  
 9e18c9c2f613        bbvainnotech/kvm:latest   "/usr/local/bin/star…"   4 seconds ago       Up 3 seconds                            testome
 root@ubuntu:~#
 ```
-````
+```
 root@ubuntu:~# docker inspect 9e18| tail -n20
                     "IPAMConfig": null,
                     "Links": null,
@@ -138,7 +138,7 @@ root@ubuntu:~# docker inspect 9e18| tail -n20
 
 
 
-Features:
+## Features:
 - Non libvirt dependant.
 - It uses QEMU/KVM to launch the VM directly with PID 1.
 - It attaches to the VM as many NICs as the docker container has.
