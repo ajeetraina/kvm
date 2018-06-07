@@ -11,6 +11,7 @@ Yes, you heard it right. Its VM running inside Docker Container. But why will I 
 ## Pre-requisite:
 
 -	Enable Virtualization under BIOS(if not enabled)
+- qcow2 Image which need to be containerized
 -	Run the below command on your Host system:
   
 ```
@@ -41,7 +42,7 @@ Supply the underlying subnet and gateway. Under this example, I have supplied
 
 
 ```
-docker network create -d macvlan --subnet=100.98.26.0/24 --gateway=100.98.26.1 -o parent=virtual0 macvlan0
+docker network create -d macvlan --subnet=10.94.214.0/24 --gateway=10.94.214.26.1 -o parent=virtual0 macvlan0
 553505efb5de3f17335ce9cfb15cb6f11960c7fabc7d83ba2be089d42e18fdf3
 ```
 
@@ -74,8 +75,8 @@ root@ubuntu:~# docker network inspect macvlan0
             "Options": {},
             "Config": [
                 {
-                    "Subnet": "100.98.26.0/24",
-                    "Gateway": "100.98.26.1"
+                    "Subnet": "10.94.214.0/24",
+                    "Gateway": "10.94.214.1"
                 }
             ]
         },
@@ -98,7 +99,7 @@ root@ubuntu:~# docker network inspect macvlan0
 ## Running the Docker Container
 
 ```
-root@ubuntu:~# docker run -dit --name testome --network=macvlan0  --privileged -v /root/openmanage_enterprise.qcow2:/image/image -e AUTO_ATTACH=yes bbvainnotech/kvm:latest
+root@ubuntu:~# docker run -dit --name testome --network=macvlan0  --privileged -v /root/appliance.qcow2:/image/image -e AUTO_ATTACH=yes bbvainnotech/kvm:latest
 9e18c9c2f6135e285db59e0f5d7b2ea16ebe38e94ff95de1697fb9a2af2a0e58
 ```
 
@@ -119,8 +120,8 @@ root@ubuntu:~# docker inspect 9e18| tail -n20
                     ],
                     "NetworkID": "553505efb5de3f17335ce9cfb15cb6f11960c7fabc7d83ba2be089d42e18fdf3",
                     "EndpointID": "3fa5668b5d63202609f612fc666b10298bdb7d79954fee1c2e67cfdbfcf7fea8",
-                    "Gateway": "100.98.26.1",
-                    "IPAddress": "100.98.26.2",
+                    "Gateway": "10.94.214.1",
+                    "IPAddress": "10.94.214.2",
                     "IPPrefixLen": 24,
                     "IPv6Gateway": "",
                     "GlobalIPv6Address": "",
