@@ -1,6 +1,141 @@
-# Running Virtual Machine Inside a Docker Container
+# Running Virtual Machine Inside a Docker Container using MacVLAN
 
-Generic container for launching a Virtual Machine inside a Docker container.
+Yes, you heard it right. Its VM running inside Docker Container. But why will I need that? Say, your company has been using legacy application in terms of appliance model and it is being provided in terms of VMs. Now you get a requirement saying it has to be containerized. This guide can help you containerizing the VM appliance by running it inside Docker Container.
+
+## Tested Envrionment:
+
+- Ubuntu 14.04.3
+- Docker 18.05
+- Dell PowerEdge R630
+
+## Pre-requisite:
+
+-	Enable Virtualization under BIOS(if not enabled)
+-	Run the below command on your Host system:
+  
+```
+modprobe vhost-net
+```
+
+## Adding MacVLAN Network
+
+First we need to add interface virtual0@macvlan type. I am picking up eth1 as it is free interface available on my host system.
+
+```
+root@ubuntu:~# ip link add virtual0 link eth1 type macvlan mode bridge
+```
+
+## Verify if the new MacVLAN interface has come up or not.
+
+```
+#ifconfig|less
+
+10: virtual0@eth1: <BROADCAST,MULTICAST,M-DOWN> mtu 1500 qdisc noop state DOWN group default
+    link/ether 92:78:b2:bd:af:82 brd ff:ff:ff:ff:ff:ff
+root@ubuntu:~#
+```
+
+## Configuring MacVLAN
+
+Supply the underlying subnet and gateway. Under this example, I have supplied 
+
+
+```
+docker network create -d macvlan --subnet=100.98.26.0/24 --gateway=100.98.26.1 -o parent=virtual0 macvlan0
+553505efb5de3f17335ce9cfb15cb6f11960c7fabc7d83ba2be089d42e18fdf3
+```
+
+
+## Listing out the Network.
+
+```
+root@ubuntu:~# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+871f1f745cc4        bridge              bridge              local
+113bf063604d        host                host                local
+553505efb5de        macvlan0            macvlan             local
+13248c62bb5d        network1            bridge              local
+2c510f91a22d        none                null                local
+```
+## Inspecting the macvlan0 network
+
+```
+root@ubuntu:~# docker network inspect macvlan0
+[
+    {
+        "Name": "macvlan0",
+        "Id": "553505efb5de3f17335ce9cfb15cb6f11960c7fabc7d83ba2be089d42e18fdf3",
+        "Created": "2018-06-07T07:51:57.8591307+05:30",
+        "Scope": "local",
+        "Driver": "macvlan",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "100.98.26.0/24",
+                    "Gateway": "100.98.26.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {},
+        "Options": {
+            "parent": "virtual0"
+        },
+        "Labels": {}
+    }
+]
+```
+
+## Running the Docker Container
+
+```
+root@ubuntu:~# docker run -dit --name testome --network=macvlan0  --privileged -v /root/openmanage_enterprise.qcow2:/image/image -e AUTO_ATTACH=yes bbvainnotech/kvm:latest
+9e18c9c2f6135e285db59e0f5d7b2ea16ebe38e94ff95de1697fb9a2af2a0e58
+```
+
+## Ensuring that the docker container is up and running
+
+```
+root@ubuntu:~# docker ps
+CONTAINER ID        IMAGE                     COMMAND                  CREATED             STATUS              PORTS               NAMES
+9e18c9c2f613        bbvainnotech/kvm:latest   "/usr/local/bin/star…"   4 seconds ago       Up 3 seconds                            testome
+root@ubuntu:~#
+```
+````
+root@ubuntu:~# docker inspect 9e18| tail -n20
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "9e18c9c2f613"
+                    ],
+                    "NetworkID": "553505efb5de3f17335ce9cfb15cb6f11960c7fabc7d83ba2be089d42e18fdf3",
+                    "EndpointID": "3fa5668b5d63202609f612fc666b10298bdb7d79954fee1c2e67cfdbfcf7fea8",
+                    "Gateway": "100.98.26.1",
+                    "IPAddress": "100.98.26.2",
+                    "IPPrefixLen": 24,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:64:62:1a:02",
+                    "DriverOpts": null
+                }
+            }
+        }
+    }
+]
+
+```
+
+
 
 Features:
 - Non libvirt dependant.
